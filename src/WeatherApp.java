@@ -17,16 +17,38 @@ public class WeatherApp {
 
         String[] cities = {"Chisinau", "Madrid", "Kyiv", "Amsterdam"};
 
+        String forecastDate = getForecastDate(apiKey, cities[0]);
+
+        System.out.printf("%-12s | %-10s | %-10s | %-10s | %-12s | %-10s | %-10s%n",
+                "City", "Date", "Min Temp", "Max Temp", "Humidity %", "Wind kp/h", "Wind dir");
+        System.out.println("-------------------------------------------------------------------------------------------------");
+
         for (String city : cities) {
             try {
-                fetchAndPrintWeather(apiKey, city);
+                fetchAndPrintWeather(apiKey, city, forecastDate);
             } catch (Exception e) {
                 System.out.println("Error fetching weather for " + city + ": " + e.getMessage());
             }
         }
     }
 
-    private static void fetchAndPrintWeather(String apiKey, String city) throws IOException, InterruptedException {
+    private static String getForecastDate(String apiKey, String city) {
+        try {
+            String url = BASE_URL + "?key=" + apiKey + "&q=" + city + "&days=2&aqi=no&alerts=no";
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                String body = response.body();
+                return body.split("\"date\":\"")[2].split("\"")[0];
+            }
+        } catch (Exception ignored) {}
+        return "Unknown";
+    }
+
+    private static void fetchAndPrintWeather(String apiKey, String city, String forecastDate) throws IOException, InterruptedException {
         String url = BASE_URL + "?key=" + apiKey + "&q=" + city + "&days=2&aqi=no&alerts=no";
 
         HttpClient client = HttpClient.newHttpClient();
@@ -39,13 +61,13 @@ public class WeatherApp {
         }
 
         String body = response.body();
-        String mintemp = body.split("\"mintemp_c\":")[1].split(",")[0];
-        String maxtemp = body.split("\"maxtemp_c\":")[1].split(",")[0];
-        String humidity = body.split("\"avghumidity\":")[1].split(",")[0];
-        String wind = body.split("\"maxwind_kph\":")[1].split(",")[0];
+        String mintemp = body.split("\"mintemp_c\":")[2].split(",")[0];
+        String maxtemp = body.split("\"maxtemp_c\":")[2].split(",")[0];
+        String humidity = body.split("\"avghumidity\":")[2].split(",")[0];
+        String wind = body.split("\"maxwind_kph\":")[2].split(",")[0];
         String windDir = body.split("\"wind_dir\":\"")[1].split("\"")[0];
 
-        System.out.printf("%s → Min %s°C, Max %s°C, Humidity %s%%, Wind %s kph %s%n",
-                city, mintemp, maxtemp, humidity, wind, windDir);
+        System.out.printf("%-12s | %-10s | %-10s | %-10s | %-12s | %-10s | %-10s%n",
+                city, forecastDate, mintemp, maxtemp, humidity, wind, windDir);
     }
 }
