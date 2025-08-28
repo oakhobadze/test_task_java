@@ -2,7 +2,7 @@
 
 Using the WeatherAPI.com API, retrieve a forecast for the next day for the following cities:
 
-Chisinau, Madrid, Kyiv, and Amsterdam. Requirements
+Chisinau, Madrid, Kyiv, and Amsterdam.
 
 # How to run program
 
